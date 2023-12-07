@@ -30,6 +30,7 @@ class ElasticClient:
                 
             
     def connect_to_local(self):
+        print("Connecting to local ElasticSearch")
         return Elasticsearch(
             "http://localhost:9200",
             max_retries=self.MAX_RETRIES, 
