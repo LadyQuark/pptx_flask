@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 
+from app.services.elasticService import ElasticService
 from app.services.myDocumentsService import MyDocumentsService
 from app.utils.common import Common
 from app.utils.messages import Messages
@@ -44,6 +45,34 @@ def search_and_generate():
         logged_in_user = TEST_USER
 
         #TODO
+
+    except Exception as e:
+        Common.exception_details("mydocuments.py : search_and_generate", e)
+        return Response.server_error()
+
+
+@presentation.route("/search", methods=["GET"])
+def search_documents():
+    try:
+        logged_in_user = TEST_USER
+        request_params = request.args.to_dict()
+
+        if "query" not in request_params:
+            return Response.missing_required_parameter("query")
+        query = str(request_params.get("query", ""))    
+
+        resp = ElasticService.search_in_index(
+            query=query, 
+            user_id=logged_in_user["_id"]
+            )
+        total = resp['total']['value']
+        print("")
+        results = [item['_source'] for item in resp['hits']]
+        
+        if len(results) > 0:
+            return Response.custom_response(
+                results, Messages.OK_KI_RETRIEVAL, True, 200
+            )
 
     except Exception as e:
         Common.exception_details("mydocuments.py : search_and_generate", e)
