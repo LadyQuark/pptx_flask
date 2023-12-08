@@ -117,6 +117,93 @@ class MyDocumentsService:
 				user_id, f"Successfully uploaded {uploaded_documents_num} documents!"
 			)
 
+	@staticmethod
+	def get_file_save_path(filename, user, path):
+		"""
+        The function `get_file_save_path` returns the save path for a file based on the filename, user,
+        and path provided.
+
+        Args:
+          filename: The name of the file that you want to save.
+          user: The `user` parameter is the user ID or identifier. It is used to determine if the file
+        is created by the user or if it is shared with the user.
+          path: The `path` parameter is the path where the file should be saved. It is a string
+        representing the directory structure where the file should be stored.
+
+        Returns:
+          the file save path.
+        """
+		# key = '_id'
+		# user_id = user[key]
+		file = MyDocumentsService().get_file_by_virtual_name(filename)
+		file_created_by = file["createdBy"]["_id"]
+		# print(
+		#     f"File {filename} is created by {file_created_by} and the user is {user}. Path is {path}!"
+		# )
+		# Check if file is created by user
+		if str(user) == str(file_created_by):
+			user_folder_path = os.path.join(Config.USER_FOLDER, str(user))
+			new_path = path[1:]
+			# print("NEW PATH : " + new_path)
+			if path != None:
+				user_folder_path = os.path.join(user_folder_path, new_path)
+				# print("USER FOLDER : ", user_folder_path)
+			# if(folder_name != None):
+			#     folder_save_path = os.path.join(user_folder_path, folder_name)
+			# else:
+			#     folder_save_path = user_folder_path
+			file_save_path = os.path.join(user_folder_path, filename)
+			# print("File save path to return : ", file_save_path)
+		# If not then the file is shared
+		else:
+			replace_substring = "/" + str(file_created_by) + "/"
+			user_folder_path = os.path.join(
+				Config.USER_FOLDER, str(file_created_by)
+			)
+			file_root = file["root"]
+			file_root = file_root.replace(replace_substring, "")
+			# print("FILE ROOT: %s" % file_root)
+			user_folder_path = os.path.join(user_folder_path, file_root)
+			# print("USER: %s" % user_folder_path)
+			file_save_path = os.path.join(user_folder_path, filename)
+		return file_save_path
+
+	@staticmethod
+	def get_file_path(file, user_id):
+		"""
+		The function `get_file_path` takes a file object and a user ID as input, and returns the file
+		path based on the root folder and virtual file name.
+
+		Args:
+			file: The "file" parameter is a dictionary that contains information about a file. It has two
+		keys: "root" and "virtualFileName".
+			user_id: The user ID is a unique identifier for each user. It is used to identify the user's
+		folder where the file is located.
+
+		Returns:
+			the file path as a string if it is successfully generated. If there is an exception, it will
+		return None.
+		"""
+		try:
+			root = file["root"]
+			root_folder_path = os.path.join(Config.USER_FOLDER, user_id)
+			folder_substring = "/" + user_id + "/"
+			file_name = file["virtualFileName"]
+			if root == folder_substring:
+				file_path = os.path.join(root_folder_path, file_name)
+			else:
+				new_root = root.replace(folder_substring, "")
+				folder = os.path.join(root_folder_path, new_root)
+				file_path = os.path.join(folder, file_name)
+
+			# print("File path : ", file_path)
+
+			return file_path
+
+		except Exception as e:
+			Common.exception_details("myDocumentsService.get_file_path", e)
+			return None
+
 
 	def parse_document(self, logged_in_user, file, new_path):
 		"""
