@@ -3,11 +3,12 @@
 """
 import json
 import re
+import os
 import traceback
-from typing import Any
-from urllib.parse import urlsplit
 
 from bson import json_util
+from typing import Any
+from urllib.parse import urlsplit
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.config import Config
@@ -124,3 +125,27 @@ class Common:
             return dictionary[field_name]
         else:
             return default_value
+
+    @staticmethod
+    def get_valid_filename(name):
+        """
+        modified from: https://github.com/django/django/blob/main/django/utils/text.py
+
+        Return the given string converted to a string that can be used for a clean
+        filename. Remove leading and trailing spaces; convert other spaces to
+        underscores; and remove anything that is not an alphanumeric, dash,
+        underscore, or dot.
+        >>> get_valid_filename("john's portrait in 2004.jpg")
+        'johns_portrait_in_2004.jpg'
+        """
+        name = str(name).strip()
+        file_name, file_extension = os.path.splitext(name)
+        file_name = file_name.rstrip(". ").replace(" ", "_")
+        file_name = re.sub(r"(?u)[^-\w.]", "", file_name)
+        max_name_lenght = 255 - len(file_extension)
+        final_name = file_name[:max_name_lenght] + file_extension
+
+        if final_name in {"", ".", ".."}:
+            raise Exception("Could not derive file name from '%s'" % name)
+        
+        return final_name      

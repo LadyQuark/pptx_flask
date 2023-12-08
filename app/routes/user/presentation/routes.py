@@ -65,8 +65,10 @@ def search_and_generate():
         if not file_path:
             return Response.server_error()
         
+        download_name = Common.get_valid_filename(f"{query}.pptx")
+        
         return send_file(
-            file_path, as_attachment=True, download_name=f"{query}.pptx"
+            file_path, as_attachment=True, download_name=download_name
         )
 
     except Exception as e:
