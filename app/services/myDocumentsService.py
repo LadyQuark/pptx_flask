@@ -2,6 +2,7 @@ import concurrent.futures
 import datetime
 import os
 import pprint
+import uuid
 
 from bson import ObjectId
 from pathlib import Path
@@ -167,42 +168,6 @@ class MyDocumentsService:
 			# print("USER: %s" % user_folder_path)
 			file_save_path = os.path.join(user_folder_path, filename)
 		return file_save_path
-
-	@staticmethod
-	def get_file_path(file, user_id):
-		"""
-		The function `get_file_path` takes a file object and a user ID as input, and returns the file
-		path based on the root folder and virtual file name.
-
-		Args:
-			file: The "file" parameter is a dictionary that contains information about a file. It has two
-		keys: "root" and "virtualFileName".
-			user_id: The user ID is a unique identifier for each user. It is used to identify the user's
-		folder where the file is located.
-
-		Returns:
-			the file path as a string if it is successfully generated. If there is an exception, it will
-		return None.
-		"""
-		try:
-			root = file["root"]
-			root_folder_path = os.path.join(Config.USER_FOLDER, user_id)
-			folder_substring = "/" + user_id + "/"
-			file_name = file["virtualFileName"]
-			if root == folder_substring:
-				file_path = os.path.join(root_folder_path, file_name)
-			else:
-				new_root = root.replace(folder_substring, "")
-				folder = os.path.join(root_folder_path, new_root)
-				file_path = os.path.join(folder, file_name)
-
-			# print("File path : ", file_path)
-
-			return file_path
-
-		except Exception as e:
-			Common.exception_details("myDocumentsService.get_file_path", e)
-			return None
 
 
 	def parse_document(self, logged_in_user, file, new_path):
@@ -535,7 +500,7 @@ class MyDocumentsService:
 			# Ensure that the folder exists
 			folder_path = os.path.join(user_folder, Config.GENERATED_FOLDER_NAME)
 			os.makedirs(folder_path, exist_ok=True)
-			dest_filepath = os.path.join(folder_path, f"{query}.pptx")
+			dest_filepath = os.path.join(folder_path, f"{str(uuid.uuid4())}.pptx")
 			
 			# Combine all slides into single presentation			
 			for slide in elastic_results:
