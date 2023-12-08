@@ -1,7 +1,7 @@
 import traceback
-from pathlib import Path
-from functools import cached_property
 
+from functools import cached_property
+from pathlib import Path
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
@@ -14,20 +14,21 @@ class PresentationManager(object):
     # Character limit for content text in single slide
     MAX_CONTENT_LIMIT=2250
 
-    def __init__(self, file_path=None, file=None, template_slide_index=1, slide_size=()):
+    def __init__(self, path_or_file, template_slide_index=1, slide_size=()):
         # Since presentation.Presentation class not intended to be constructed directly, using pptx.Presentation() to open presentation
         self.file_path = None
-        
-        if file:
-            self.presentation = Presentation(file)
-            print("Loaded presentation:", file.filename)
-        elif file_path and Path(file_path).exists():
-            self.presentation = Presentation(file_path)
-            self.file_path = file_path
-            print("Loaded presentation from:", file_path)
+
+        if isinstance(path_or_file, str):
+            if Path(path_or_file).exists():
+                self.presentation = Presentation(path_or_file)
+                self.file_path = path_or_file
+                print("Loaded presentation from:", self.file_path)
+            else:
+                self.presentation = Presentation()
+                print("New presentation object loaded")
         else:
-            self.presentation = Presentation()
-            print("New presentation object loaded")
+            self.presentation = Presentation(path_or_file)
+            print("Loaded presentation:", path_or_file.filename)
 
         if slide_size:
             height, width = slide_size

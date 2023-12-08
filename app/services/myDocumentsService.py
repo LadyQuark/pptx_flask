@@ -455,7 +455,7 @@ class MyDocumentsService:
 		m_db = MongoClient.connect()
 
 
-		ppt = PresentationManager(file=file)
+		ppt = PresentationManager(file)
 		slide_texts = ppt.extract_all_text()
 		title = ppt.title
 		ppt_content = "\n".join([slide["content"] for slide in slide_texts if slide["content"]])
@@ -487,32 +487,38 @@ class MyDocumentsService:
 	@staticmethod
 	def generate_pptx_from_search(elastic_results, query, user_id):
 		try:
-			ppt_paths = {}
 			user_folder = os.path.join(Config.USER_FOLDER, str(user_id))
-			# Get save paths for all presentations
+
+			ppts = {}
+			skips = set()
 			for item in elastic_results:
 				virtual_filename = item['virtualFileName']
-				if virtual_filename not in ppt_paths:
+				if (virtual_filename not in ppts) and (virtual_filename not in skips):
 					file_root = item['root']
 					file_path = os.path.join(user_folder, file_root[1:], virtual_filename)
-					ppt_paths[virtual_filename] = file_path
+					if not Path(file_path).exists():
+						skips.append(virtual_filename)
+						continue
+					ppts[virtual_filename] = PresentationManager(file_path)
+			pp.pprint(ppts)
 
 			# Ensure that the folder exists
 			folder_path = os.path.join(user_folder, Config.GENERATED_FOLDER_NAME)
 			os.makedirs(folder_path, exist_ok=True)
 			dest_filepath = os.path.join(folder_path, f"{str(uuid.uuid4())}.pptx")
-			
+
 			# Combine all slides into single presentation			
 			for slide in elastic_results:
 				slides_to_copy = [slide['slide_index']]
 				virtual_filename = slide['virtualFileName']
-				source = PresentationManager(ppt_paths[virtual_filename])
+				source = ppts[virtual_filename]
+				print(f"Copying from {source.title}")
 
 				PresentationManager.copy_slide_to_other_presentation(
 					source=source,
 					dest_filepath=dest_filepath,
 					slides_to_copy=slides_to_copy
-				)
+				)				
 			
 			return dest_filepath		
 
