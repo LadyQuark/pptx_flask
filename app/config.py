@@ -13,11 +13,12 @@ class Config(object):
     ELASTIC_CLOUD_ID = os.getenv('ELASTIC_CLOUD_ID')
     ELASTIC_USER = os.getenv('ELASTIC_USER')
     ELASTIC_PASSWORD = os.getenv('ELASTIC_PASSWORD')
-    ELASTIC_INDEX = os.getenv("ELASTIC_INDEX", "docs")
+    ELASTIC_INDEX = "docs"
     
     REQUEST_TIMEOUT = 900
     MAX_RETRIES = 10
 
     GCP_PROD_ENV = False
     USER_FOLDER = os.getcwd() + "/assets/users"
+    GENERATED_FOLDER_NAME = "generated_ppt"
     MONGO_DOCUMENT_MASTER_COLLECTION = "DOCUMENTS_MASTER"

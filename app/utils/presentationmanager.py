@@ -21,9 +21,7 @@ class PresentationManager(object):
         if file:
             self.presentation = Presentation(file)
             print("Loaded presentation:", file.filename)
-        elif file_path:
-            if not Path(file_path).exists():
-                raise Exception(f"File doesn't exist at {file_path}")
+        elif file_path and Path(file_path).exists():
             self.presentation = Presentation(file_path)
             self.file_path = file_path
             print("Loaded presentation from:", file_path)
@@ -158,15 +156,14 @@ class PresentationManager(object):
         # If no slide numbers given, default to all slides
         if not slides_to_copy:
             slides_to_copy = range(source.total_slides)
-        try:
-            for i in slides_to_copy:
-                duplicate_slide(source.presentation, i, destination.presentation)
-            # Save twice to avoid corruption bug
-            destination.save(dest_filepath)
-            destination = Presentation(dest_filepath)
-            destination.save(dest_filepath)
-        except Exception:
-            traceback.print_exc()    
+
+        for i in slides_to_copy:
+            duplicate_slide(source.presentation, i, destination.presentation)
+        # Save twice to avoid corruption bug
+        destination.save(dest_filepath)
+        destination = Presentation(dest_filepath)
+        destination.save(dest_filepath)
+   
 
 
     def _analyse_slide_elements(self, index, description=None):
@@ -204,7 +201,7 @@ class PresentationManager(object):
 
         for i, slide in enumerate(self.presentation.slides):
             shapes = slide.shapes
-            title = shapes.title.text if shapes.title else f"Untitled Slide {slide.slide_id}"
+            title = shapes.title.text if shapes.title else f"Untitled Slide {i}"
             all_text = []
             for item in shapes:
                 shape_text = get_text(item)

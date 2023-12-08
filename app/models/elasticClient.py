@@ -13,7 +13,9 @@ class ElasticClient:
     def connect():
         if not ElasticClient.__db:
             ElasticClient()
+        
         return ElasticClient.__db
+        
     
     def __init__(self) -> None:
         if not ElasticClient.__db:
@@ -27,6 +29,8 @@ class ElasticClient:
             
             if not ElasticClient.__db.ping():
                 raise Exception("Could not connect to ElasticSearch. Ping failed")
+            
+            print("elastic server_info:", ElasticClient.__db.info())
                 
             
     def connect_to_local(self):
@@ -46,3 +50,7 @@ class ElasticClient:
                     retry_on_timeout=True,
                     request_timeout=Config.REQUEST_TIMEOUT                    
                 )
+    
+    def check_connection(self):
+        print("elastic server_info:", self.__db.info())
+        return self.__db.ping()

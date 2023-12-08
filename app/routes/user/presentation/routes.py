@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 
 from app.services.elasticService import ElasticService
 from app.services.myDocumentsService import MyDocumentsService
@@ -15,6 +15,9 @@ def upload_documents():
         logged_in_user = TEST_USER
         files = request.files.getlist("files[]")
         path = request.form.get("path", "/ppt")
+
+        if not files:
+            return Response.missing_required_parameter("Files")
 
         # Upload files
         MyDocumentsService.upload_documents(logged_in_user, files, path)
@@ -43,8 +46,28 @@ def download_documents():
 def search_and_generate():
     try:
         logged_in_user = TEST_USER
+        request_params = request.args.to_dict()
 
-        #TODO
+        if "query" not in request_params:
+            return Response.missing_required_parameter("query")
+        query = str(request_params.get("query", ""))    
+
+        results = ElasticService().search_in_index_all(
+            query=query, 
+            user_id=logged_in_user["_id"]
+            )
+        
+        file_path = MyDocumentsService().generate_pptx_from_search(
+            elastic_results=results, 
+            user_id=logged_in_user["_id"], 
+            query=query
+            )
+        if not file_path:
+            return Response.server_error()
+        
+        return send_file(
+            file_path, as_attachment=True, download_name=f"{query}.pptx"
+        )
 
     except Exception as e:
         Common.exception_details("mydocuments.py : search_and_generate", e)
@@ -61,7 +84,7 @@ def search_documents():
             return Response.missing_required_parameter("query")
         query = str(request_params.get("query", ""))    
 
-        resp = ElasticService.search_in_index(
+        resp = ElasticService().search_in_index(
             query=query, 
             user_id=logged_in_user["_id"]
             )
