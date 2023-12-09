@@ -10,6 +10,7 @@ Run `create_elastic_index.ipynb` to create index with correct mappings
 `http://127.0.0.1:8080/api/presentation/upload-documents`
 
 Form Data:
+
 files[] : files to upload
 path    : "/ppt"
 
@@ -20,6 +21,7 @@ JSON
 `http://127.0.0.1:8080/api/presentation/upload-documents`
 
 Queries:
+
 query   : "query"
 
 Result:
