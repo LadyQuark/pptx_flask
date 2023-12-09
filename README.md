@@ -18,7 +18,7 @@ Result:
 JSON
 
 ### Search & Generate Presentation
-`http://127.0.0.1:8080/api/presentation/upload-documents`
+`http://127.0.0.1:8080/api/presentation/search/generate`
 
 Queries:
 
